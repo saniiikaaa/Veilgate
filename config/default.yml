@@ -1,0 +1,53 @@
+# Non-secret defaults. Safe to commit. This is the ONE place for the authority and scoring numbers:
+# they are synced into the database at startup and by scripts/db/seed.py.
+app:
+  log_level: info
+  port: 8080
+
+detection:
+  enable_ner: true
+  ner_confidence_threshold: 0.75
+
+authority:
+  initial_score: 100        # a new agent starts here (capped by its ceiling)
+  block_below: 20           # an agent under this is blocked; a sub-agent's reply is withheld; the session answer is blocked
+  warn_below: 50            # two or more agents, and half of them, under this block the session answer
+  rules:                    # code: delta (negative = penalty, positive = reward earned from verified evidence)
+    out_of_scope:
+      delta: -10
+      description: Tool not in the agent's declared tools
+    denied_attempt:
+      delta: -5
+      description: A call that was refused (score or trust too low, or policy)
+    external_recipient:
+      delta: -10
+      description: Email tool aimed at an address outside the allowed domains
+    prompt_injection:
+      delta: -30
+      description: Prompt injection detected in a prompt or in a tool output
+    pii_in_reply:
+      delta: -15
+      description: The agent's own reply repeated a real value that came in from the user or a tool
+    pii_in_tool_args:
+      delta: -15
+      description: Sensitive data in tool arguments that the vault did not handle
+    clean_tool_result:
+      delta: 2
+      description: Tool ran cleanly
+    compliant_handoff:
+      delta: 1
+      description: Successful agent handoff
+
+tools:
+  risk_thresholds:          # the effective score an agent needs to call a tool of this risk
+    low: 0
+    medium: 40
+    high: 70
+    critical: 90
+
+auth:
+  session_hours: 8
+  show_demo_hint: true      # shows the demo logins below on the sign-in page; set false for anything real
+  demo_accounts:            # demo only: created at startup if missing
+    - {email: admin@veilgate.demo, password: admin-demo-2026, role: admin, user_key: admin, name: Admin}
+    - {email: iyer@veilgate.demo,  password: iyer-demo-2026,  role: user,  user_key: dr.iyer, name: Dr. Iyer}

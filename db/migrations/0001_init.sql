@@ -1,0 +1,3 @@
+-- This file is a marker. The actual schema is in db/seeds/schema.sql.
+-- migrate.py applies schema.sql directly to keep it as the single source of truth.
+-- To apply manually: psql -f db/seeds/schema.sql

@@ -1,0 +1,30 @@
+# secrets and local config
+.env
+.env.*
+!.env.example
+secrets/*
+!secrets/.gitkeep
+*.pem
+*.key
+
+# python / node / build output
+__pycache__/
+*.pyc
+.venv/
+venv/
+node_modules/
+dist/
+build/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# editors, os, logs
+.idea/
+.vscode/
+.DS_Store
+*.log
+tmp/
+.venv-examples/
+demo/video/out/
+*.webm

@@ -1,0 +1,23 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+ENV PYTHONUNBUFFERED=1 PYTHONPATH=/app
+
+# dependencies first (layer cache): installing the project pulls everything pinned in pyproject.toml
+COPY pyproject.toml ./
+COPY src/ ./src/
+RUN pip install --no-cache-dir -e .
+
+COPY config/ ./config/
+COPY db/ ./db/
+COPY scripts/ ./scripts/
+COPY dashboard/ ./dashboard/
+COPY integrations/ ./integrations/
+COPY demo/ ./demo/
+COPY LICENSE README.md ./
+
+RUN mkdir -p /app/secrets
+EXPOSE 8080
+
+# Database migrations are an explicit deployment step; the API process never changes the schema.
+CMD ["sh", "-c", "exec uvicorn src.main:app --host 0.0.0.0 --port ${PORT:-8080}"]

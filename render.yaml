@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: veilgate
+    runtime: docker
+    plan: free
+    dockerfilePath: ./deploy/docker/Dockerfile.api
+    dockerContext: .
+    healthCheckPath: /readyz
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: LLM_JUDGE
+        value: "off"
+      - key: DATABASE_URL
+        sync: false
+      - key: HOOK_API_KEY
+        sync: false
+      - key: VAULT_KEY_HEX
+        sync: false
+      - key: AUTH_KEY_HEX
+        sync: false
+      - key: BOOTSTRAP_ADMIN_EMAIL
+        sync: false
+      - key: BOOTSTRAP_ADMIN_PASSWORD
+        sync: false

@@ -1,0 +1,46 @@
+services:
+  warden-api:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile.api
+    container_name: warden-api
+    command: ["sh", "-c", "python scripts/db/bootstrap.py && exec uvicorn src.main:app --host 0.0.0.0 --port 8080"]
+    ports:
+      - "8080:8080"
+    environment:
+      - DATABASE_URL=postgresql://guardrail_app:apppass@warden-db:5432/guardrail_v2
+      - MIGRATION_DATABASE_URL=postgresql://guardrail_owner:ownerpass@warden-db:5432/guardrail_v2
+      - LLM_PROVIDER=${LLM_PROVIDER:-nebius}
+      - NEBIUS_API_KEY=${NEBIUS_API_KEY:-}
+      - UPSTREAM_BASE_URL=${UPSTREAM_BASE_URL:-https://api.tokenfactory.nebius.com/v1/}
+      - LLM_JUDGE=${LLM_JUDGE:-auto}
+      - LOCAL_LLM_BASE_URL=${LOCAL_LLM_BASE_URL:-https://ai-gpu-node.tailfa114b.ts.net/api/v1}
+      - LOCAL_LLM_API_KEY=${LOCAL_LLM_API_KEY:-none}
+      - HOOK_API_KEY=${HOOK_API_KEY:-}
+      - APP_ENV=docker
+    volumes:
+      - warden-secrets:/app/secrets   # the vault key must survive restarts, or old tokens cannot be read
+    depends_on:
+      warden-db:
+        condition: service_healthy
+
+  warden-db:
+    image: postgres:16
+    container_name: warden-db
+    environment:
+      POSTGRES_USER: guardrail_owner
+      POSTGRES_PASSWORD: ownerpass
+      POSTGRES_DB: guardrail_v2
+    ports:
+      - "${WARDEN_DB_PORT:-5432}:5432"
+    volumes:
+      - warden-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U guardrail_owner -d guardrail_v2"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  warden-db-data:
+  warden-secrets:
